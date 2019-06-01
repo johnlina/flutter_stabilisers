@@ -45,7 +45,7 @@ class Stabilisers {
           generalUserMessage += '\n⚠️ Ops, it looks like you ran into a problem with your code 😵. Don’t worry, we got your back! 😄\n';
           generalUserMessage += '🧙 Here are some resources that may help you in your journey to the answer: ⚔️🛡  ';
           String stackoverflowUserMessage = '';
-          stackoverflowUserMessage += '\n\n📈 Top related questions on StackOverflow:\n';
+          stackoverflowUserMessage += '\n📈 Top related questions on StackOverflow:\n\n';
           // Here we have at max 3 answers from stackoverflow that we can use
           Map jsonResponse = jsonDecode(value) as Map;
           List items = jsonResponse['items'] as List;
