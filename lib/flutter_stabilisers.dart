@@ -5,12 +5,13 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 
-/// A Calculator.
 class Stabilisers {
 
-  static void config({bool supressStack = false}) {
+  static void config({bool suppressStack = true}) {
 
     FlutterError.onError = (details) {
+      // Print the stack if not suppressed
+      if(!suppressStack) FlutterError.dumpErrorToConsole(details);
       // Work on the exception and make it more readable
       final assertionError = details.exception as AssertionError;
       final regExp = RegExp('Failed assertion:[^:]*: ');
@@ -40,14 +41,15 @@ class Stabilisers {
         // Transform the response into a JSON
         response.transform(Utf8Decoder()).join().then((value) {
           // Start building the message that will be shown to the user later
-          String userMessage = '=====================================================================================================================================\n';
-          userMessage += '\n⚠️ Ops, it looks like you ran into a problem with your code 😵. Don’t worry, we got your back! 😄\n';
-          userMessage += '🧙 Here are some resources that may help you in your journey to the answer. ⚔️🛡  ';
-          userMessage += '\n\n📈 Top related questions on StackOverflow:\n\n';
+          String generalUserMessage = '';
+          generalUserMessage += '\n⚠️ Ops, it looks like you ran into a problem with your code 😵. Don’t worry, we got your back! 😄\n';
+          generalUserMessage += '🧙 Here are some resources that may help you in your journey to the answer: ⚔️🛡  ';
+          String stackoverflowUserMessage = '';
+          stackoverflowUserMessage += '\n\n📈 Top related questions on StackOverflow:\n';
           // Here we have at max 3 answers from stackoverflow that we can use
           Map jsonResponse = jsonDecode(value) as Map;
           List items = jsonResponse['items'] as List;
-          int answerCounter = 1;
+          int stackAnswerCounter = 0;
           for (var item in items) {
             Map itemMap = item as Map;
             var title = itemMap['title'] as String;
@@ -60,18 +62,13 @@ class Stabilisers {
               link = 'https://stackoverflow.com/a/${accepted_answer_id as int}';
             }
             // Build the message by link
-            userMessage += '${answerCounter == 1 ? '🥇' : answerCounter == 2 ? '🥈' : '🥉' } ${title}\n${link}';
-            userMessage += hasAcceptedAnswer ? ' - This link has an accepted answer ✅.\n\n' : '\n\n';
-            answerCounter++;
+            stackAnswerCounter++;
+            stackoverflowUserMessage += '${stackAnswerCounter == 1 ? '🥇' : stackAnswerCounter == 2 ? '🥈' : '🥉' } ${title}\n${link}';
+            stackoverflowUserMessage += hasAcceptedAnswer ? ' - This link has an accepted answer ✅.\n\n' : '\n\n';
           }
 
           https://api.github.com/search/issues?q=filteredMessage+type:issue+repo:flutter/flutter&sort=reactions-+1+comments&order=desc
           // Start working on github search by building the params
-          Map<String, String> gitHubQuery = {
-            'q': filteredMessage + '+type:issue+repo:flutter/flutter',
-            'order': 'desc',
-            'sort': 'reactions-+1+comments',
-          };
           // final gitHubUri = Uri.http('api.github.com', '/search/issues', gitHubQuery);
           final gitHubUri = Uri.parse('https://api.github.com/search/issues?q=${filteredMessage}+type:issue+repo:flutter/flutter&sort=reactions-+1+comments&order=desc');
           client.getUrl(gitHubUri).then((request) => request.close()).then((response) {
@@ -83,21 +80,38 @@ class Stabilisers {
               // Work on the JSON
               Map jsonResponse = jsonDecode(value) as Map;
               List items = jsonResponse['items'] as List;
-              int answerCounter = 1;
+              int gitAnswerCounter = 0;
               items = items.take(3).toList();
               for (var item in items) {
                 Map itemMap = item as Map;
                 var title = itemMap['title'] as String;
                 var link = itemMap['html_url'] as String;
                 // Build the message by link
-                gitHubUserMessage += '${answerCounter == 1 ? '🥇' : answerCounter == 2 ? '🥈' : '🥉' } ${title}\n${link}\n\n';
-                answerCounter++;
+                gitAnswerCounter++;
+                gitHubUserMessage += '${gitAnswerCounter == 1 ? '🥇' : gitAnswerCounter == 2 ? '🥈' : '🥉' } ${title}\n${link}\n\n';
               }
 
               // FINAL PRINT
-              print(userMessage);
-              print(gitHubUserMessage);
-              print('=====================================================================================================================================');
+              print('===========================================================================\n');
+              print('                              = Stabilisers =                              \n');
+              print('===========================================================================');
+              if (stackAnswerCounter == 0 && gitAnswerCounter == 0) {
+                // Empty results
+                print('\n\n');
+                print('⚠️ Ops, it looks like you ran into a problem with your code.\n');
+                print('😢 Unfortunately, Flutter-Stabilisers could not find any resources to help you with this quest. But don’t worry, there is still hope!\n');
+                print('👨‍💻 Submit a question to StackOverflow. There are lot of developers around the world willing to help you! 🌎\n');
+                print('https://stackoverflow.com/questions/ask/wizard\n');
+                print('👨‍🔬 If you think there is something wrong with the platform you can open an issue on GitHub, where specialists will take a better look!\n');
+                print('https://github.com/flutter/flutter/issues/new/choose\n');
+                print('💌 If none of this helps you can also get in touch with us\n');
+                print('joao@neomode.com.br\n\n');
+              } else {
+                print(generalUserMessage);
+                if (stackAnswerCounter > 0) print(stackoverflowUserMessage);
+                if (gitAnswerCounter > 0) print(gitHubUserMessage);
+              }
+              print('===========================================================================');
             });
           });
         });
