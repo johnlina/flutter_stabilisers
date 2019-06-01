@@ -12,7 +12,10 @@ Add the following dependency to `pubspec.yaml`:
 ```yaml
 dependencies:
   ...
-  flutter_stabilisers: "^0.0.1"
+  flutter_stabilisers:
+    git:
+      url: git://github.com/johnlina/flutter_stabilisers.git
+      ref: master
 ```
 
 In your `main.dart` add the following import:
