@@ -44,7 +44,7 @@ The error stack will be suppressed by default. If you want to view the full erro
 ```dart
 void main() {
 
-  Stabilisers.config(suppressStack: true);
+  Stabilisers.config(suppressStack: false);
 
   runApp(MyApp());
 
